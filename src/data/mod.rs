@@ -1,6 +1,7 @@
 mod node;
 pub mod global;
 pub mod peer;
+pub mod account;
 
 use log::info;
 use node::init as node_init;

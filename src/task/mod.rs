@@ -15,7 +15,7 @@ pub async fn task_loop(time: u64) {
         // Multiple Time Task
         info!("Task Looping");
         
-        sleep(Duration::from_secs(20)).await;
+        sleep(Duration::from_secs(30)).await;
     }
 }
 
