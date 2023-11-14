@@ -1,0 +1,43 @@
+version: "3.7"
+services:
+  node1:
+    build: .
+    ports:
+      - "4001:3001"
+      - "3001:3000"
+    volumes:
+      - ./node1:/app/
+    command: "/bin/sh -c 'cd /app && ./river_core'"
+    networks:
+      river_core:
+        ipv4_address: 172.26.0.2
+  node2:
+    build: .
+    ports:
+      - "4002:3001"
+      - "3002:3000"
+    volumes:
+      - ./node2:/app/
+    command: "/bin/sh -c 'cd /app && ./river_core'"
+    networks:
+      river_core:
+        ipv4_address: 172.26.0.3
+  node3:
+    build: .
+    ports:
+      - "4003:3001"
+      - "3003:3000"
+    volumes:
+      - ./node3:/app/
+    command: "/bin/sh -c 'cd /app && ./river_core'"
+    networks:
+      river_core:
+        ipv4_address: 172.26.0.4
+
+networks:
+  river_core:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16
+          gateway: 172.26.0.1
