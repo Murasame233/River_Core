@@ -17,5 +17,11 @@ uuid = { version = "1.5.0", features = ["v4", "serde"] }
 toml = { version = "0.8.2" }
 log = { version = "0.4.20" }
 log4rs = { version = "1.2.0", features = ["console_appender", "file_appender"] }
-serde_json = {version = "1.0.108" ,features = []}
-scc = "2.0.3"
+serde_json = { version = "1.0.108", features = [] }
+scc = { version = "2.0.3" }
+rocket = { version = "=0.5.0-rc.4", features = ["json"] }
+ring = { version = "0.17.5" }
+algonaut = { version = "0.4.2" }
+data-encoding = { version = "2.4.0" }
+reqwest={version = "0.11.22"}
+openssl = { version = "0.10.59", features = ["vendored"] }

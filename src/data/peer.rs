@@ -6,7 +6,7 @@ pub struct Peer {
     pub retry_count: i8,
 }
 
-impl<'a> Peer {
+impl Peer {
     pub fn new(address:String) -> Self {
         Self {
             address,

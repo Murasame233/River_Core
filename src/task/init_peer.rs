@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use futures::{SinkExt, StreamExt};
+use log::info;
 use tokio::sync::{oneshot, Mutex};
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
@@ -12,7 +13,7 @@ use crate::{
         },
         peer::Peer,
     },
-    peer_protocol::{new_node::NewNodeReq, Message as PeerMessage, MessageData, MessageType},
+    peer_protocol::{new_node::NewNodeReq, Message as PeerMessage, MessageData, MessageType}, data_protocol::handle_user_messge,
 };
 
 pub async fn run() {
@@ -40,9 +41,18 @@ pub async fn run() {
                             .send(Message::text(serde_json::to_string(&re).unwrap()))
                             .await
                             .unwrap();
-                    } else {
+                    } else if message.message_type == MessageType::Response {
                         let v = GLOBAL_REQUEST_LOCKER.get(&message.id).unwrap();
                         v.remove_entry().1.send(message).unwrap();
+                    } else if message.message_type == MessageType::Relay {
+                        match message.data {
+                            MessageData::UserMessage(message) => {
+                                handle_user_messge(message).await;
+                            }
+                            _ => {
+                                info!("Invalid relay")
+                            }
+                        }
                     }
                 }
             }

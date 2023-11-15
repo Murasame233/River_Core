@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::data_protocol::UserMessage;
+
 use self::new_node::{NewNodeReq, NewNodeRes};
 
 pub mod new_node;
@@ -9,12 +11,14 @@ pub mod new_node;
 pub enum MessageType {
     Requst,
     Response,
+    Relay,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum MessageData {
     NewNodeReq(NewNodeReq),
     NewNodeRes(NewNodeRes),
     Text(String),
+    UserMessage(UserMessage),
 }
 
 impl MessageData {
@@ -50,6 +54,14 @@ impl Message {
             name,
             message_type: MessageType::Response,
             data,
+        }
+    }
+    pub fn new_relay(name: String, data: UserMessage) -> Self {
+        Self {
+            id: data.id,
+            name,
+            message_type: MessageType::Relay,
+            data:MessageData::UserMessage(data),
         }
     }
     pub async fn handle_request(&self) -> Self {

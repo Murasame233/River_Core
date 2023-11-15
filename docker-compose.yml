@@ -3,8 +3,9 @@ services:
   node1:
     build: .
     ports:
-      - "4001:3001"
-      - "3001:3000"
+      - "3001:3001"
+      - "2501:3000"
+      - "2001:2999"
     volumes:
       - ./node1:/app/
     command: "/bin/sh -c 'cd /app && ./river_core'"
@@ -14,8 +15,9 @@ services:
   node2:
     build: .
     ports:
-      - "4002:3001"
-      - "3002:3000"
+      - "3002:3001"
+      - "2502:3000"
+      - "2002:2999"
     volumes:
       - ./node2:/app/
     command: "/bin/sh -c 'cd /app && ./river_core'"
@@ -25,8 +27,9 @@ services:
   node3:
     build: .
     ports:
-      - "4003:3001"
-      - "3003:3000"
+      - "3003:3001"
+      - "2503:3000"
+      - "2003:2999"
     volumes:
       - ./node3:/app/
     command: "/bin/sh -c 'cd /app && ./river_core'"

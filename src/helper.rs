@@ -9,7 +9,7 @@ use log4rs::{
     config::{Appender, Root},
 };
 
-use crate::{API_ADDRESS, DATA_DIR, PEER_ADDRESS};
+use crate::{API_ADDRESS, DATA_DIR, PEER_ADDRESS, DATA_ADDRESS};
 
 pub fn set_log() {
     let stdout = ConsoleAppender::builder().build();
@@ -45,6 +45,19 @@ pub fn get_data_dir() -> PathBuf {
 
 pub fn get_api_address() -> SocketAddr {
     let s = std::env::var("API_PORT");
+    let mut address = SocketAddr::new(std::net::IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 2999);
+    if s.is_err() {
+    } else {
+        let parsed = s.unwrap().parse::<u16>();
+        if parsed.is_ok() {
+            address.set_port(parsed.unwrap());
+        };
+    }
+    return address;
+}
+
+pub fn get_data_address() -> SocketAddr {
+    let s = std::env::var("DATA_PORT");
     let mut address = SocketAddr::new(std::net::IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 3000);
     if s.is_err() {
     } else {
@@ -72,5 +85,6 @@ pub fn get_peer_address() -> SocketAddr {
 pub fn prepare_env() {
     info!("DATA dir: {}", DATA_DIR.to_str().unwrap());
     info!("API address: {}", API_ADDRESS.to_string());
+    info!("DATA address: {}", DATA_ADDRESS.to_string());
     info!("PEER address: {}", PEER_ADDRESS.to_string());
 }
