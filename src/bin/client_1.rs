@@ -37,13 +37,14 @@ async fn main() {
             let message: UserMessage =
                 serde_json::from_str(msg.unwrap().to_string().as_str()).unwrap();
             let UserMessageData::Text(s) = message.data;
-            println!("Client Stream: {}", s);
+            println!("Other User Stream: {}", s);
             if message.message_type == UserMessageType::REG {
                 subs_clone.lock().await.push(message.from);
             }
         })
         .await;
     });
+    println!("Now you can type");
     while let Some(s) = stdin_rx.next().await {
         let lock = subs.lock().await;
         lock.iter().for_each(|id| {

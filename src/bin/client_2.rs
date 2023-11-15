@@ -44,12 +44,12 @@ fn main() {
                 let message: UserMessage =
                     serde_json::from_str(msg.unwrap().to_string().as_str()).unwrap();
                 let UserMessageData::Text(s) = message.data;
-                println!("Father Stream: {}", s);
+                println!("Other User Stream: {}", s);
             })
             .await;
         });
 
-        println!("now you can type");
+        println!("Now you can type");
         while let Some(s) = stdin_rx.next().await {
             let user_message: UserMessage = UserMessage::new_message(
                 Uuid::from_str(&sub).unwrap(),
