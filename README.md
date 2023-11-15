@@ -1,3 +1,5 @@
+Due to a deadline, this repo only contains necessary code. There are some features still in developing, for a better perception of demo, unfinished code is delete in this repo.
+
 # River
 
 River is a real time layer-2 network based on Algorand.
