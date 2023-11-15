@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use algonaut::transaction::account::Account;
 use data_encoding::BASE64;
-use futures::{executor::block_on, SinkExt, StreamExt};
+use futures::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
