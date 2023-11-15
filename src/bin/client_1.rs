@@ -22,7 +22,7 @@ struct Sign {
 #[tokio::main]
 async fn main() {
     let (father, url) = father_stream().await;
-    println!("father: {}",father);
+    println!("father: {}", father);
     let subs: Arc<Mutex<Vec<Uuid>>> = Arc::new(Mutex::new(vec![]));
     let subs_clone = subs.clone();
 
@@ -36,10 +36,11 @@ async fn main() {
         read.for_each(|msg| async {
             let message: UserMessage =
                 serde_json::from_str(msg.unwrap().to_string().as_str()).unwrap();
-            let UserMessageData::Text(s) = message.data;
-            println!("Other User Stream: {}", s);
             if message.message_type == UserMessageType::REG {
                 subs_clone.lock().await.push(message.from);
+            } else {
+                let UserMessageData::Text(s) = message.data;
+                println!("Other User Stream: {}", s);
             }
         })
         .await;
