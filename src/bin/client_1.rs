@@ -1,16 +1,15 @@
-use std::{str::FromStr, time::Duration};
+use std::{str::FromStr, sync::Arc};
 
 use algonaut::transaction::account::Account;
 use data_encoding::BASE64;
-use futures::{SinkExt, StreamExt};
+use futures::{executor::block_on, SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
-use tokio::{io::AsyncReadExt, task::JoinHandle, time::sleep};
-use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio::{io::AsyncReadExt, sync::Mutex};
+use tokio_tungstenite::tungstenite::Message;
 use url::Url;
 use uuid::Uuid;
 
 const MEMO:&'static str = "stereo room brief lion actual dress sister elephant cricket age mule elite month coil devote sun deputy vacant great reduce faint response hip abandon recycle";
-const MEMO2:&'static str = "crystal tiger wide simple cricket sick clerk cupboard master jump reflect level page solve sound depth jazz party wool wage ill window battle above reason";
 
 #[derive(Deserialize, Debug, Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -22,34 +21,47 @@ struct Sign {
 
 #[tokio::main]
 async fn main() {
-    let (father, handle) = father_stream().await;
-    sleep(Duration::from_secs(3)).await;
-    let (sub, url) = sub_stream(&father).await;
+    let (father, url) = father_stream().await;
+    println!("father: {}",father);
+    let subs: Arc<Mutex<Vec<Uuid>>> = Arc::new(Mutex::new(vec![]));
+    let subs_clone = subs.clone();
 
     let (stdin_tx, mut stdin_rx) = futures::channel::mpsc::unbounded();
     tokio::spawn(read_stdin(stdin_tx));
 
-    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
-    println!("WebSocket handshake has been successfully completed");
-
-    let (mut write, _) = ws_stream.split();
-
-    println!("now you can type");
+    let (ws, _) = tokio_tungstenite::connect_async(url).await.unwrap();
+    // print all incomming;
+    let (mut write, read) = ws.split();
+    let handle = tokio::spawn(async move {
+        read.for_each(|msg| async {
+            let message: UserMessage =
+                serde_json::from_str(msg.unwrap().to_string().as_str()).unwrap();
+            let UserMessageData::Text(s) = message.data;
+            println!("Client Stream: {}", s);
+            if message.message_type == UserMessageType::REG {
+                subs_clone.lock().await.push(message.from);
+            }
+        })
+        .await;
+    });
     while let Some(s) = stdin_rx.next().await {
-        let user_message: UserMessage = UserMessage::new_message(
-            Uuid::from_str(&sub).unwrap(),
-            Uuid::from_str(&father).unwrap(),
-            s,
-        );
-        write
-            .send(Message::Text(serde_json::to_string(&user_message).unwrap()))
-            .await
-            .unwrap();
+        let lock = subs.lock().await;
+        lock.iter().for_each(|id| {
+            let s = s.clone();
+            block_on(async {
+                let user_message: UserMessage =
+                    UserMessage::new_message(Uuid::from_str(&father).unwrap(), id.clone(), s);
+                write
+                    .send(Message::Text(serde_json::to_string(&user_message).unwrap()))
+                    .await
+                    .unwrap();
+            });
+        });
     }
     let _ = handle.await;
 }
 
-async fn father_stream() -> (String, JoinHandle<()>) {
+async fn father_stream() -> (String, Url) {
     let msg = String::from("123");
     let account = Account::from_mnemonic(MEMO).unwrap();
     let signature = BASE64.encode(&account.generate_sig(msg.as_bytes()).0);
@@ -64,45 +76,11 @@ async fn father_stream() -> (String, JoinHandle<()>) {
         .json(&sign);
     let re = req.send().await.unwrap();
     let father = re.text().await.unwrap();
-    println!("{:?}", father);
     let mut connect_addr = String::from("ws://127.0.0.1:2501/");
     connect_addr.push_str(&father);
-    println!("{:?}", connect_addr);
     let url = url::Url::parse(&connect_addr).unwrap();
-    let handle = tokio::spawn(async {
-        let (ws, _) = tokio_tungstenite::connect_async(url).await.unwrap();
-        // print all incomming;
-        let (_write, read) = ws.split();
-        read.for_each(|msg| async {
-            let message: UserMessage =
-                serde_json::from_str(msg.unwrap().to_string().as_str()).unwrap();
-            let UserMessageData::Text(s) = message.data;
-            println!("Father Stream: {}", s);
-        })
-        .await;
-    });
-    return (father, handle);
-}
 
-async fn sub_stream(father: &String) -> (String, Url) {
-    let msg = father.clone();
-    let account = Account::from_mnemonic(MEMO2).unwrap();
-    let signature = BASE64.encode(&account.generate_sig(msg.as_bytes()).0);
-    let sign = Sign {
-        address: account.address().to_string(),
-        msg,
-        signature,
-    };
-    let client = reqwest::Client::new();
-    let req = client.post("http://127.0.0.1:2003/join_stream").json(&sign);
-    let re = req.send().await.unwrap();
-    let sub = re.text().await.unwrap();
-    println!("{:?}", sub);
-    let mut connect_addr = String::from("ws://127.0.0.1:2503/");
-    connect_addr.push_str(&sub);
-    println!("{:?}", connect_addr);
-    let url = Url::parse(&connect_addr).unwrap();
-    return (sub, url);
+    return (father, url);
 }
 
 async fn read_stdin(tx: futures::channel::mpsc::UnboundedSender<String>) {
