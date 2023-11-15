@@ -20,7 +20,7 @@ struct Sign {
 }
 
 fn main() {
-    // get user input
+    println!("Please input Stream ID: ");
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let father = input.trim().to_string();

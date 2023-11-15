@@ -33,7 +33,12 @@ cargo run --package river_core --bin river_core
 ## Run example client
 ```
 cargo run --package river_core --bin client_1
+# get the stream id that will be output
+# open a different terminal
+cargo run --package river_core --bin client_2
+# input the stream id 
 ```
+
 you can check the file [client_1.rs](src/bin/client_1.rs) for more information
 
 ## Contact
