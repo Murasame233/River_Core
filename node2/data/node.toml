@@ -1,0 +1,3 @@
+id = "c75bf938-9fb7-45c3-bad4-d329249b67f8"
+init_node = "ws://172.26.0.2:3001"
+report_address = "ws://172.26.0.3:3001"
